@@ -1,2 +1,2 @@
-pipenv sell
+pipenv shell
 python manage.py runserver
