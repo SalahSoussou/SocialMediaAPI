@@ -2,7 +2,7 @@ from django.shortcuts import render ,HttpResponse ,redirect
 from django.contrib.auth.models import User, auth
 
 from django.contrib import messages
-from .models import Profile, Post, LikePost, FollowersCount
+from .models import *
 from django.contrib.auth.decorators import  login_required
 from itertools import chain
 import random
@@ -165,11 +165,11 @@ def settings(request):
     if request.method == 'POST':
         
         if request.FILES.get('image') == None:
-            image = user_profile.profileimg
+            image = user_profile.profileimage
             bio = request.POST['bio']
             location = request.POST['location']
 
-            user_profile.profileimg = image
+            user_profile.profileimage = image
             user_profile.bio = bio
             user_profile.location = location
             user_profile.save()
@@ -178,7 +178,7 @@ def settings(request):
             bio = request.POST['bio']
             location = request.POST['location']
 
-            user_profile.profileimg = image
+            user_profile.profileimage = image
             user_profile.bio = bio
             user_profile.location = location
             user_profile.save()
