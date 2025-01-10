@@ -1,13 +1,14 @@
-from django.shortcuts import render ,HttpResponse ,redirect
+from django.shortcuts import render, redirect
 from django.contrib.auth.models import User, auth
-
 from django.contrib import messages
-from .models import *
-from django.contrib.auth.decorators import  login_required
+from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
+from .models import Profile, Post, LikePost, FollowersCount
 from itertools import chain
 import random
 
 # Create your views here.
+
 @login_required(login_url='signin')
 def index(request):
     user_object = User.objects.get(username=request.user.username)
@@ -51,8 +52,9 @@ def index(request):
         username_profile_list.append(profile_lists)
 
     suggestions_username_profile_list = list(chain(*username_profile_list))
-    return render(request, 'index.html', {'user_profile': user_profile, 'posts':feed_list, 'suggestions_username_profile_list': suggestions_username_profile_list[:4]})
 
+
+    return render(request, 'index.html', {'user_profile': user_profile, 'posts':feed_list, 'suggestions_username_profile_list': suggestions_username_profile_list[:4]})
 
 @login_required(login_url='signin')
 def upload(request):
@@ -158,18 +160,18 @@ def follow(request):
     else:
         return redirect('/')
 
-
 @login_required(login_url='signin')
 def settings(request):
     user_profile = Profile.objects.get(user=request.user)
+
     if request.method == 'POST':
         
         if request.FILES.get('image') == None:
-            image = user_profile.profileimage
+            image = user_profile.profileimg
             bio = request.POST['bio']
             location = request.POST['location']
 
-            user_profile.profileimage = image
+            user_profile.profileimg = image
             user_profile.bio = bio
             user_profile.location = location
             user_profile.save()
@@ -178,73 +180,68 @@ def settings(request):
             bio = request.POST['bio']
             location = request.POST['location']
 
-            user_profile.profileimage = image
+            user_profile.profileimg = image
             user_profile.bio = bio
             user_profile.location = location
             user_profile.save()
         
         return redirect('settings')
-    return render(request,'settings.html',{'user_profile':user_profile})
+    return render(request, 'setting.html', {'user_profile': user_profile})
 
 def signup(request):
 
     if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        passwordC = request.POST.get('passwordC')
-        # print(username,password)
-        # return HttpResponse('Signup Successful')
-        if password == passwordC:
+        username = request.POST['username']
+        email = request.POST['email']
+        password = request.POST['password']
+        password2 = request.POST['password2']
+
+        if password == password2:
             if User.objects.filter(email=email).exists():
-                messages.info(request,'Email already exists')
+                messages.info(request, 'Email Taken')
                 return redirect('signup')
             elif User.objects.filter(username=username).exists():
-                messages.info(request,'Username already exists')
+                messages.info(request, 'Username Taken')
                 return redirect('signup')
             else:
-                user = User.objects.create_user(username=username,email=email,password=password)
+                user = User.objects.create_user(username=username, email=email, password=password)
                 user.save()
 
-                user_login = auth.authenticate(username=username, password=password) 
-                auth.login(request,user_login)
+                #log user in and redirect to settings page
+                user_login = auth.authenticate(username=username, password=password)
+                auth.login(request, user_login)
 
-                # Create a new profile for the user
+                #create a Profile object for the new user
                 user_model = User.objects.get(username=username)
                 new_profile = Profile.objects.create(user=user_model, id_user=user_model.id)
                 new_profile.save()
-
-                # messages.info(request,'User created')
                 return redirect('settings')
         else:
-            messages.info(request,'Password not matching')
+            messages.info(request, 'Password Not Matching')
             return redirect('signup')
-    else:
-        return render(request,'signup.html')
-    
-
-
-
-
-# sigin logic
-def signin(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = auth.authenticate(username=username,password=password)
         
+    else:
+        return render(request, 'signup.html')
+
+def signin(request):
+    
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+
+        user = auth.authenticate(username=username, password=password)
+
         if user is not None:
-            auth.login(request,user)
+            auth.login(request, user)
             return redirect('/')
         else:
-            messages.info(request,'Invalid credentials')
+            messages.info(request, 'Credentials Invalid')
             return redirect('signin')
+
     else:
-        return render(request,'signin.html')
-    
+        return render(request, 'signin.html')
+
 @login_required(login_url='signin')
 def logout(request):
     auth.logout(request)
     return redirect('signin')
-
-
