@@ -26,7 +26,7 @@
 	
 	<section>
 			<div class="feature-photo">
-				<figure><img src="{% static 'images/resources/bg.jpeg' %}" alt=""></figure>
+				<figure><img src="{% static 'images/resources/bg.jpeg' %}" style="max-height: 300px;" alt=""></figure>
 				<form action="/follow" method="POST">
 					{% csrf_token %}
 					<div class="add-btn">
